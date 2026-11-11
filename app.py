@@ -7,14 +7,19 @@ from google.oauth2.service_account import Credentials
 # 구글 시트 연결 설정 (Streamlit Secrets 활용)
 @st.cache_resource
 def init_connection():
+    scope = [
+        "https://www.googleapis.com/auth/spreadsheets",
+        "https://www.googleapis.com/auth/drive",
+    ]
+    
+    # st.secrets에 있는 gcp_service_account 정보를 딕셔너리로 가져오기
     creds_dict = dict(st.secrets["gcp_service_account"])
-    creds = Credentials.from_service_account_info(
-        creds_dict,
-        scopes=[
-            "https://www.googleapis.com/auth/spreadsheets",
-            "https://www.googleapis.com/auth/drive",
-        ],
-    )
+    
+    # 만약 private_key에 문자열 형태의 \n이 있다면 실제 줄바꿈으로 변환
+    if "private_key" in creds_dict:
+        creds_dict["private_key"] = creds_dict["private_key"].replace("\\n", "\n")
+
+    creds = Credentials.from_service_account_info(creds_dict, scopes=scope)
     client = gspread.authorize(creds)
     return client
 
