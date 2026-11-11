@@ -59,7 +59,17 @@ else:
 app_title = f"{icon} 혈압수첩"
 
 st.title(app_title)
-st.subheader(f"안녕하세요! {display_name}, 오늘 측정한 혈압을 기입해 주세요.")
+
+# 모바일 화면에 맞게 폰트 크기와 줄바꿈을 조정한 인사말
+st.markdown(
+    f"""
+    <div style='font-size: 1.2rem; line-height: 1.6; margin-bottom: 2rem; color: #333;'>
+        안녕하세요, <b>{display_name}</b>!<br>
+        오늘 측정한 혈압을 기입해 주세요. ❤️
+    </div>
+    """,
+    unsafe_allow_html=True
+)
 
 # 5. 입력 폼
 with st.form("blood_pressure_form"):
