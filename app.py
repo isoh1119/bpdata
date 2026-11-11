@@ -43,13 +43,23 @@ except Exception as e:
     )
     st.stop()
 
-# 4. 사용자 분기
+# 4. 사용자 분기 (화면 표시용 이름과 시트 저장용 이름 분리)
 user_type = st.query_params.get("user", "father")
-user_name = "어머니" if user_type == "mother" else "아버지"
-app_title = f"{'👩' if user_type == 'mother' else '👨'} {user_name} 효도 혈압수첩"
+
+if user_type == "mother":
+    user_name = "어머니"          # 구글 시트에 저장될 값 (기존 데이터 유지용)
+    display_name = "박금자 님"     # 화면에 표시될 이름
+    icon = "👩"
+else:
+    user_name = "아버지"          # 구글 시트에 저장될 값 (기존 데이터 유지용)
+    display_name = "임병헌 님"     # 화면에 표시될 이름
+    icon = "👨"
+
+# 앱 제목 변경 (어르신 효도 삭제)
+app_title = f"{icon} 혈압수첩"
 
 st.title(app_title)
-st.subheader(f"안녕하세요! {user_name} 오늘 측정한 혈압을 기입해 주세요.")
+st.subheader(f"안녕하세요! {display_name}, 오늘 측정한 혈압을 기입해 주세요.")
 
 # 5. 입력 폼
 with st.form("blood_pressure_form"):
@@ -80,7 +90,7 @@ with st.form("blood_pressure_form"):
 
 # 6. 최근 기록
 st.divider()
-st.write(f"📊 **{user_name} 최근 누적 기록**")
+st.write(f"📊 **{display_name} 최근 누적 기록**")  # 여기를 display_name 으로 변경
 try:
     data = sheet.get_all_values()
     if len(data) > 1:
