@@ -4,18 +4,18 @@ from datetime import datetime
 import gspread
 from google.oauth2.service_account import Credentials
 
-# 구글 시트 연결 설정 (개인키 포맷 에러 방지 처리 포함)
+# 1. 페이지 설정 (반드시 코드 최상단에 위치해야 합니다)
+st.set_page_config(page_title="어르신 효도 혈압수첩", page_icon="❤️", layout="centered")
+
+# 구글 시트 연결 설정 (캐시 적용)
 @st.cache_resource
 def init_connection():
     scope = [
         "https://www.googleapis.com/auth/spreadsheets",
         "https://www.googleapis.com/auth/drive",
     ]
-    
-    # Secrets의 딕셔너리 정보 가져오기
     creds_dict = dict(st.secrets["gcp_service_account"])
     
-    # private_key의 줄바꿈 문자 및 불필요한 공백/캐리지 리턴(\r) 완벽 정돈
     if "private_key" in creds_dict:
         pk = creds_dict["private_key"]
         pk = pk.replace("\\n", "\n").replace("\r\n", "\n").strip()
@@ -25,10 +25,18 @@ def init_connection():
     client = gspread.authorize(creds)
     return client
 
-client = init_connection()
-sheet = client.open("어르신 효도 혈압수첩").sheet1
+# 2. 무한 로딩 방지 및 예외 처리 연결
+try:
+    with st.spinner("구글 시트와 안전하게 연결하는 중입니다..."):
+        client = init_connection()
+        # 구글 시트 이름이 정확한지 꼭 확인해 주세요!
+        sheet = client.open("어르신 효도 혈압수첩").sheet1
+except Exception as e:
+    st.error(f"❌ 구글 시트 연결 오류: {e}")
+    st.info("💡 1. 구글 시트 제목이 '어르신 효도 혈압수첩'인지 확인해 주세요.\n\n💡 2. Streamlit Secrets의 개인키 형식이 올바른지 확인해 주세요.")
+    st.stop()
 
-# URL 파라미터로 아버님/어머님 구분
+# URL 파라미터로 아버님/어머님 구분 (예: ?user=father 또는 ?user=mother)
 query_params = st.query_params
 user_type = query_params.get("user", "father")
 
@@ -38,8 +46,6 @@ if user_type == "mother":
 else:
     app_title = "👨 아버지 효도 혈압수첩"
     user_name = "아버지"
-
-st.set_page_config(page_title=app_title, page_icon="❤️", layout="centered")
 
 st.title(app_title)
 st.subheader(f"안녕하세요! {user_name} 오늘 측정한 혈압을 기입해 주세요.")
@@ -60,10 +66,13 @@ with st.form("blood_pressure_form"):
     submitted = st.form_submit_button("❤️ 기록 저장하기", use_container_width=True)
     
     if submitted:
-        current_time = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-        row = [current_time, user_name, timing, sys, dia, pulse, memo]
-        sheet.append_row(row)
-        st.success("✅ 구글 시트에 안전하게 기록되었습니다!")
+        try:
+            current_time = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+            row = [current_time, user_name, timing, sys, dia, pulse, memo]
+            sheet.append_row(row)
+            st.success("✅ 구글 시트에 안전하게 기록되었습니다!")
+        except Exception as e:
+            st.error(f"저장 중 오류 발생: {e}")
 
 # 최근 기록 보여주기
 st.divider()
