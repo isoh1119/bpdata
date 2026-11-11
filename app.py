@@ -2,22 +2,11 @@ import streamlit as st
 import pandas as pd
 from datetime import datetime
 import gspread
-from google.oauth2.service_account import Credentials
-import json
 
-# 구글 시트 연결 설정 (Streamlit Secrets에서 전체 JSON 통째로 불러오기)
+# 구글 시트 연결 설정 (깃허브에 업로드한 credentials.json 파일 사용)
 @st.cache_resource
 def init_connection():
-    scope = [
-        "https://www.googleapis.com/auth/spreadsheets",
-        "https://www.googleapis.com/auth/drive",
-    ]
-    
-    # st.secrets에 저장된 전체 JSON 문자열을 파싱
-    creds_dict = json.loads(st.secrets["gcp_json"])
-    
-    creds = Credentials.from_service_account_info(creds_dict, scopes=scope)
-    client = gspread.authorize(creds)
+    client = gspread.service_account(filename="credentials.json")
     return client
 
 client = init_connection()
