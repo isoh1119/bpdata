@@ -6,7 +6,7 @@ from google.oauth2.service_account import Credentials
 import json
 
 # 1. 페이지 설정 (반드시 최상단)
-st.set_page_config(page_title="어르신 효도 혈압수첩", page_icon="❤️", layout="centered")
+st.set_page_config(page_title="혈압수첩", page_icon="❤️", layout="centered")
 
 # 2. 구글 시트 연결
 @st.cache_resource
