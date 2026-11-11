@@ -4,7 +4,7 @@ from datetime import datetime
 import gspread
 from google.oauth2.service_account import Credentials
 
-# 구글 시트 연결 설정 (st.secrets 활용)
+# 구글 시트 연결 설정 (개인키 포맷 에러 방지 처리 포함)
 @st.cache_resource
 def init_connection():
     scope = [
@@ -15,9 +15,11 @@ def init_connection():
     # Secrets의 딕셔너리 정보 가져오기
     creds_dict = dict(st.secrets["gcp_service_account"])
     
-    # private_key 내부 문자열 형태의 \n 처리
-    if "private_key" in creds_dict and isinstance(creds_dict["private_key"], str):
-        creds_dict["private_key"] = creds_dict["private_key"].replace("\\n", "\n")
+    # private_key의 줄바꿈 문자 및 불필요한 공백/캐리지 리턴(\r) 완벽 정돈
+    if "private_key" in creds_dict:
+        pk = creds_dict["private_key"]
+        pk = pk.replace("\\n", "\n").replace("\r\n", "\n").strip()
+        creds_dict["private_key"] = pk
 
     creds = Credentials.from_service_account_info(creds_dict, scopes=scope)
     client = gspread.authorize(creds)
