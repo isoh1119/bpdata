@@ -3,8 +3,9 @@ import pandas as pd
 from datetime import datetime
 import gspread
 from google.oauth2.service_account import Credentials
+import json
 
-# 1. 페이지 설정 (반드시 코드 최상단에 위치해야 합니다)
+# 1. 페이지 설정 (반드시 코드 최상단)
 st.set_page_config(page_title="어르신 효도 혈압수첩", page_icon="❤️", layout="centered")
 
 # 구글 시트 연결 설정 (캐시 적용)
@@ -14,26 +15,22 @@ def init_connection():
         "https://www.googleapis.com/auth/spreadsheets",
         "https://www.googleapis.com/auth/drive",
     ]
-    creds_dict = dict(st.secrets["gcp_service_account"])
     
-    if "private_key" in creds_dict:
-        pk = creds_dict["private_key"]
-        pk = pk.replace("\\n", "\n").replace("\r\n", "\n").strip()
-        creds_dict["private_key"] = pk
-
+    # st.secrets에 저장된 gcp_json 문자열을 딕셔너리로 변환
+    creds_dict = json.loads(st.secrets["gcp_json"])
+    
     creds = Credentials.from_service_account_info(creds_dict, scopes=scope)
     client = gspread.authorize(creds)
     return client
 
-# 2. 무한 로딩 방지 및 예외 처리 연결
+# 2. 구글 시트 연결 시도
 try:
     with st.spinner("구글 시트와 안전하게 연결하는 중입니다..."):
         client = init_connection()
-        # 구글 시트 이름이 정확한지 꼭 확인해 주세요!
         sheet = client.open("어르신 효도 혈압수첩").sheet1
 except Exception as e:
     st.error(f"❌ 구글 시트 연결 오류: {e}")
-    st.info("💡 1. 구글 시트 제목이 '어르신 효도 혈압수첩'인지 확인해 주세요.\n\n💡 2. Streamlit Secrets의 개인키 형식이 올바른지 확인해 주세요.")
+    st.info("💡 1. 구글 시트 제목이 '어르신 효도 혈압수첩'인지 확인해 주세요.\n\n💡 2. Streamlit Secrets의 gcp_json 형식이 올바른지 확인해 주세요.")
     st.stop()
 
 # URL 파라미터로 아버님/어머님 구분 (예: ?user=father 또는 ?user=mother)
