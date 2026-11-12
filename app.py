@@ -6,7 +6,7 @@ import gspread
 from google.oauth2.service_account import Credentials
 import json
 
-# 1. 페이지 설정 (반드시 최상단)
+# 1. 페이지 설정
 st.set_page_config(page_title="혈압수첩", page_icon="❤️", layout="centered")
 
 # ★ [UI 추가] 모바일 최적화 및 큰 글씨/큰 버튼 CSS
@@ -35,7 +35,7 @@ div[data-testid="stDateInput"] input {
     text-align: center !important;
     font-weight: bold !important;
 }
-/* 플러스/마이너스 버튼 숨기기 (직접 키패드로 입력하도록 유도) */
+/* 플러스/마이너스 버튼 숨기기 */
 div[data-testid="stNumberInput"] button {
     display: none !important;
 }
@@ -52,6 +52,11 @@ div[data-testid="stFormSubmitButton"] > button {
     font-weight: 800 !important;
     border-radius: 15px !important;
     margin-top: 1rem;
+}
+/* ★ [추가] 빈칸 입력 시 뜨는 경고/에러 메시지 글씨 크기 키우기 */
+div[data-testid="stAlert"] p {
+    font-size: 24px !important;
+    font-weight: bold !important;
 }
 </style>
 """, unsafe_allow_html=True)
@@ -120,25 +125,24 @@ kst = zoneinfo.ZoneInfo("Asia/Seoul")
 with st.form("blood_pressure_form"):
     date = st.date_input("측정 날짜", datetime.now(kst).date())
     
-    # 라디오 버튼 간격 조정을 위해 빈 칸 추가 가능
     timing = st.radio("측정 시점", ["☀️ 아침", "🌙 저녁"], horizontal=True)
 
     col1, col2 = st.columns(2)
     with col1:
-        # ★ 기본값(120)을 지우고 value=None 설정, placeholder로 흐린 글씨 안내
-        sbp = st.number_input("최고 혈압", min_value=50, max_value=230, value=None, placeholder="120")
+        # ★ placeholder 삭제 (완전히 빈칸으로 시작)
+        sbp = st.number_input("최고 혈압", min_value=50, max_value=230, value=None)
     with col2:
-        # ★ 기본값(80)을 지우고 value=None 설정
-        dbp = st.number_input("최저 혈압", min_value=30, max_value=150, value=None, placeholder="80")
+        # ★ placeholder 삭제
+        dbp = st.number_input("최저 혈압", min_value=30, max_value=150, value=None)
 
-    # ★ 맥박수 기본값(72)도 지우고 빈 칸으로 설정
-    pulse = st.number_input("맥박수 (1분당)", min_value=30, max_value=200, value=None, placeholder="72")
+    # ★ placeholder 삭제
+    pulse = st.number_input("맥박수 (1분당)", min_value=30, max_value=200, value=None)
     memo = st.text_input("증상 / 특이사항 (선택)")
 
     submitted = st.form_submit_button("❤️ 기록 저장하기", use_container_width=True)
 
     if submitted:
-        # ★ [추가] 빈 칸으로 제출했을 때 에러 방지
+        # 빈 칸으로 제출했을 때 경고
         if sbp is None or dbp is None or pulse is None:
             st.warning("⚠️ 혈압과 맥박 수치를 모두 입력해 주세요!")
         else:
