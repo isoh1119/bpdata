@@ -20,6 +20,12 @@ div[data-testid="stNumberInput"] input {
     font-weight: bold !important;
     color: #111 !important;
 }
+/* ★ [신규] 안내 문구(placeholder)를 연한 회색으로, 크기는 적당히 크게 */
+div[data-testid="stNumberInput"] input::placeholder {
+    color: #d0d0d0 !important; /* 아주 연한 회색 */
+    font-weight: normal !important;
+    font-size: 28px !important;
+}
 /* 라벨(제목) 글씨 키우기 */
 div[data-testid="stNumberInput"] label p,
 div[data-testid="stDateInput"] label p,
@@ -57,22 +63,6 @@ div[data-testid="stFormSubmitButton"] > button {
 div[data-testid="stAlert"] p {
     font-size: 24px !important;
     font-weight: bold !important;
-}
-
-/* ★ [신규 추가] 입력칸 왼쪽 테두리 안쪽에 '입력' 글씨 띄우기 */
-div[data-testid="stNumberInput"] div[data-baseweb="input"] {
-    position: relative !important;
-}
-div[data-testid="stNumberInput"] div[data-baseweb="input"]::before {
-    content: "입력" !important;
-    position: absolute !important;
-    left: 20px !important;
-    top: 50% !important;
-    transform: translateY(-50%) !important;
-    font-size: 22px !important;
-    color: #999 !important; /* 적당히 연한 회색 */
-    font-weight: normal !important;
-    pointer-events: none !important; /* 글씨를 눌러도 입력칸이 터치되도록 통과시킴 */
 }
 </style>
 """, unsafe_allow_html=True)
@@ -145,12 +135,14 @@ with st.form("blood_pressure_form"):
 
     col1, col2 = st.columns(2)
     with col1:
-        # placeholder 없이 완전히 빈칸으로 시작 (왼쪽에 CSS로 '입력' 표시됨)
-        sbp = st.number_input("최고 혈압", min_value=50, max_value=230, value=None)
+        # placeholder="입력" 추가
+        sbp = st.number_input("최고 혈압", min_value=50, max_value=230, value=None, placeholder="입력")
     with col2:
-        dbp = st.number_input("최저 혈압", min_value=30, max_value=150, value=None)
+        # placeholder="입력" 추가
+        dbp = st.number_input("최저 혈압", min_value=30, max_value=150, value=None, placeholder="입력")
 
-    pulse = st.number_input("맥박수 (1분당)", min_value=30, max_value=200, value=None)
+    # placeholder="입력" 추가
+    pulse = st.number_input("맥박수 (1분당)", min_value=30, max_value=200, value=None, placeholder="입력")
     memo = st.text_input("증상 / 특이사항 (선택)")
 
     submitted = st.form_submit_button("❤️ 기록 저장하기", use_container_width=True)
