@@ -1,7 +1,7 @@
 import streamlit as st
 import pandas as pd
 from datetime import datetime
-import zoneinfo
+import zoneinfo  # ★ 한국 시간대 설정을 위해 추가된 모듈
 import gspread
 from google.oauth2.service_account import Credentials
 import json
@@ -17,10 +17,10 @@ def init_connection():
         "https://www.googleapis.com/auth/drive",
     ]
     raw = st.secrets["gcp_json"]
-    # TOML이 dict로 파싱한 경우와 str인 경우 모두 대응
-    creds_dict = json.loads(raw) if isinstance(raw, str) else dict(raw)
+    # TOML이 dict로 파싱한 경우와 str인 경우 모두 대응 (줄바꿈 에러 방지 strict=False)
+    creds_dict = json.loads(raw, strict=False) if isinstance(raw, str) else dict(raw)
 
-    # 혹시 남아있을 literal "\\n" 안전 보정 (json.loads가 이미 처리했으면 no-op)
+    # 혹시 남아있을 literal "\\n" 안전 보정
     pk = creds_dict.get("private_key", "")
     if "\\n" in pk:
         creds_dict["private_key"] = pk.replace("\\n", "\n")
@@ -56,9 +56,8 @@ else:
     display_name = "임병헌 님"     # 화면에 표시될 이름
     icon = "👨"
 
-# 앱 제목 변경 (어르신 효도 삭제)
+# 앱 제목 변경
 app_title = f"{icon} 혈압수첩"
-
 st.title(app_title)
 
 # 모바일 화면에 맞게 폰트 크기와 줄바꿈을 조정한 인사말
@@ -72,11 +71,12 @@ st.markdown(
     unsafe_allow_html=True
 )
 
-# 5. 입력 폼
+# ★ 한국 시간(KST) 설정
 kst = zoneinfo.ZoneInfo("Asia/Seoul")
 
+# 5. 입력 폼
 with st.form("blood_pressure_form"):
-    date = st.date_input("측정 날짜", datetime.now(kst).date())
+    date = st.date_input("측정 날짜", datetime.now(kst).date())  # ★ 한국 시간 기준 날짜
     timing = st.radio("측정 시점", ["☀️ 아침", "🌙 저녁"], horizontal=True)
 
     col1, col2 = st.columns(2)
@@ -90,20 +90,20 @@ with st.form("blood_pressure_form"):
 
     submitted = st.form_submit_button("❤️ 기록 저장하기", use_container_width=True)
 
-        if submitted:
+    if submitted:
         try:
-            # ★ 현재 시각을 한국 시간으로 가져오도록 수정
+            # ★ 사용자가 선택한 날짜 + 한국 현재 시각
             timestamp = f"{date} {datetime.now(kst).strftime('%H:%M:%S')}"
             row = [timestamp, user_name, timing, sbp, dbp, pulse, memo]
             sheet.append_row(row)
             st.success("✅ 구글 시트에 안전하게 기록되었습니다!")
-            st.cache_resource.clear()
+            st.cache_resource.clear()   # 다음 렌더에서 최신 데이터 다시 읽기
         except Exception as e:
             st.error(f"저장 중 오류: {type(e).__name__}: {e}")
 
 # 6. 최근 기록
 st.divider()
-st.write(f"📊 **{display_name} 최근 누적 기록**")  # 여기를 display_name 으로 변경
+st.write(f"📊 **{display_name} 최근 누적 기록**")
 try:
     data = sheet.get_all_values()
     if len(data) > 1:
