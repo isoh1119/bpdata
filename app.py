@@ -1,6 +1,7 @@
 import streamlit as st
 import pandas as pd
 from datetime import datetime
+import zoneinfo
 import gspread
 from google.oauth2.service_account import Credentials
 import json
@@ -72,8 +73,10 @@ st.markdown(
 )
 
 # 5. 입력 폼
+kst = zoneinfo.ZoneInfo("Asia/Seoul")
+
 with st.form("blood_pressure_form"):
-    date = st.date_input("측정 날짜", datetime.now().date())
+    date = st.date_input("측정 날짜", datetime.now(kst).date())
     timing = st.radio("측정 시점", ["☀️ 아침", "🌙 저녁"], horizontal=True)
 
     col1, col2 = st.columns(2)
@@ -87,14 +90,14 @@ with st.form("blood_pressure_form"):
 
     submitted = st.form_submit_button("❤️ 기록 저장하기", use_container_width=True)
 
-    if submitted:
+        if submitted:
         try:
-            # ★ 사용자가 선택한 날짜 + 현재 시각
-            timestamp = f"{date} {datetime.now().strftime('%H:%M:%S')}"
+            # ★ 현재 시각을 한국 시간으로 가져오도록 수정
+            timestamp = f"{date} {datetime.now(kst).strftime('%H:%M:%S')}"
             row = [timestamp, user_name, timing, sbp, dbp, pulse, memo]
             sheet.append_row(row)
             st.success("✅ 구글 시트에 안전하게 기록되었습니다!")
-            st.cache_resource.clear()   # 다음 렌더에서 최신 데이터 다시 읽기
+            st.cache_resource.clear()
         except Exception as e:
             st.error(f"저장 중 오류: {type(e).__name__}: {e}")
 
