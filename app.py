@@ -86,12 +86,12 @@ def init_connection():
 try:
     with st.spinner("구글 시트와 안전하게 연결하는 중입니다..."):
         client = init_connection()
-        sheet = client.open("어르신 효도 혈압수첩").sheet1
+        sheet = client.open("부모님 혈압수첩").sheet1
 except Exception as e:
     st.error(f"❌ 구글 시트 연결 오류: {type(e).__name__}: {e}")
     st.info(
         "확인 순서:\n"
-        "1. 구글 시트 제목이 정확히 '어르신 효도 혈압수첩'인지\n"
+        "1. 구글 시트 제목이 정확히 '부모님 혈압수첩'인지\n"
         "2. 서비스 계정 이메일에 시트 편집자 권한이 있는지\n"
         "3. GCP에서 새 키를 발급받았고 차단되지 않았는지\n"
         "4. Streamlit Secrets의 gcp_json이 '''...''' 로 감싸져 있는지"
